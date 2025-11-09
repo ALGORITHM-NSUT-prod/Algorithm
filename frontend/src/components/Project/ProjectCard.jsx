@@ -137,11 +137,10 @@ const ProjectCard = ({ project, isOngoing, refreshProjects, user }) => {
       isExpanded ? ' z-30' : 'z-10'
     }`}
   >
-
       <Paper
         sx={{
-          background: 'linear-gradient(to right, #ffffff)',
-          backgroundColor: '#15142F',
+          // background: 'linear-gradient(to right, #ffffff)', // Line removed
+          backgroundColor: '#15142F', // This dark background will now apply
           borderRadius: 3,
           overflow: !editProject ? 'hidden' : 'visible',
           boxShadow: 6,
@@ -149,7 +148,7 @@ const ProjectCard = ({ project, isOngoing, refreshProjects, user }) => {
           cursor: 'pointer',
           zIndex: -2,
           height: 'fit',
-          color: 'black',
+          color: 'black', // You may want to change this to 'white' if it's the default text color
           '&:hover': {
             scale: 1.05,
             boxShadow: 12,
@@ -164,6 +163,7 @@ const ProjectCard = ({ project, isOngoing, refreshProjects, user }) => {
         }}
         onClick={toggleExpand}
       >
+      
         <div>
           <Suspense fallback={<OpacityLoader />}>
             {editProject && <AddProject
