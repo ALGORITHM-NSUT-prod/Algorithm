@@ -2,42 +2,7 @@ import Project from "../models/ProjectModel.js";
 import apply from "../models/joinProject.js";
 import FormData from "../models/formDataModel.js";
 import { Octokit } from "@octokit/rest";
-import cloudinary from 'cloudinary';
-
-const uploadFilesToCloudinary = async (files, folder = "projects") => {
-  return Promise.all(
-    files.map((file) => {
-      return new Promise((resolve, reject) => {
-        cloudinary.v2.uploader.upload_stream(
-          { folder },
-          (error, result) => {
-            if (error) {
-              console.error("Cloudinary upload error:", error);
-              reject(error);
-            } else {
-              const arr = result.secure_url.split('upload');
-              const bucket  = arr[0] + 'upload/f_auto,q_auto:good' + arr[1];
-              resolve(bucket);
-            }
-          }
-        ).end(file.buffer);
-      });
-    })
-  );
-};
-
-const deteFromCloudinary = async (imagesToDelete) => {
-  for (const imageUrl of imagesToDelete) {
-    const publicId = imageUrl.split('/').pop().split('.')[0]; // Extract public ID from the URL
-    try {
-      await cloudinary.v2.api
-        .delete_resources(['projects/' + publicId],
-          { type: 'upload', resource_type: 'image' })
-    } catch (error) {
-      console.log(`Failed to delete image ${imageUrl}:`, error.message);
-    }
-  }
-}
+import { uploadFilesToCloudinary, deleteFromCloudinary } from "../utils/cdnUploader.js";
 
 export const getProjects = async (req, res) => {
   try {
@@ -110,12 +75,6 @@ export const getProjects = async (req, res) => {
 export const updateProject = async (req, res) => {
   try {
     const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
-    cloudinary.v2.config({
-      cloud_name: process.env.CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API,
-      api_secret: process.env.CLOUDINARY_SECRET,
-      secure: true,
-    });
     const { title, description, lead, contributors, githubUrl, images, liveLink, status } = req.body;
     const uploadImages = req.files;
     if (req.user._id === '') {
@@ -137,7 +96,7 @@ export const updateProject = async (req, res) => {
         return res.status(422).json({ message: 'URL outside organization', error: error.message });
       }
       try {
-        const response = await octokit.rest.repos.get({
+        await octokit.rest.repos.get({
           owner,
           repo,
         });
@@ -229,7 +188,7 @@ export const updateProject = async (req, res) => {
     }
     const oldImages = project.images || [];
     const imagesToDelete = oldImages.filter(image => !images.includes(image));
-    await deteFromCloudinary(imagesToDelete);
+    await deleteFromCloudinary(imagesToDelete);
     const finalImages = [...oldImages.filter(image => images.includes(image)), ...photoUrls];
     project.description = description;
     project.githubUrl = githubUrl;
@@ -251,12 +210,6 @@ export const updateProject = async (req, res) => {
 export const addProject = async (req, res) => {
   try {
     const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
-    cloudinary.v2.config({
-      cloud_name: process.env.CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API,
-      api_secret: process.env.CLOUDINARY_SECRET,
-      secure: true,
-    });
     const { title, description, lead, githubUrl, liveLink } = req.body;
     const images = req.files;
     const admin = req.user.admin;
@@ -314,12 +267,6 @@ export const addProject = async (req, res) => {
 
 export const deleteProject = async (req, res) => {
   try {
-    cloudinary.v2.config({
-      cloud_name: process.env.CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API,
-      api_secret: process.env.CLOUDINARY_SECRET,
-      secure: true,
-    });
     const user = req.user._id;
     if (user === '') {
       return res.status(403).json({ message: 'Session Expired, Login again!' });
@@ -329,7 +276,7 @@ export const deleteProject = async (req, res) => {
     if (!project) {
       res.status(401).json({ message: 'unauthorized' });
     }
-    await deteFromCloudinary(project.images);
+    await deleteFromCloudinary(project.images);
     await Project.deleteOne({ _id: project._id });
     res.status(200).json({ message: 'Project Deleted successfully' });
   }

@@ -13,6 +13,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { styled } from '@mui/system';
+import OpacityLoader from '../Loaders/OpacityLoader';
 
 const primaryColor = '#330075';
 const secondaryColor = '#4a007a';
@@ -50,6 +51,7 @@ const AddProject = ({ refreshProjects, showadd = false, edit, setEditState, proj
   const [showForm, setShowForm] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
 
@@ -159,6 +161,7 @@ const AddProject = ({ refreshProjects, showadd = false, edit, setEditState, proj
       }
     }
     try {
+      setLoading(true);
       const response = await fetch(import.meta.env.VITE_BACKEND_URL + '/updateProject', {
         method: 'POST',
         credentials: "include",
@@ -176,6 +179,9 @@ const AddProject = ({ refreshProjects, showadd = false, edit, setEditState, proj
 
     } catch (error) {
       console.error('Error posting data:', error);
+    }
+    finally {
+      setLoading(false);
     }
   };
 
@@ -217,7 +223,9 @@ const AddProject = ({ refreshProjects, showadd = false, edit, setEditState, proj
   };
 
   return (
+    
     <div>
+      {loading && <OpacityLoader />}
       {/* Plus card to open form */}
       {showadd && (
         <div

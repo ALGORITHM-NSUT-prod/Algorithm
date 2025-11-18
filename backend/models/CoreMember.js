@@ -4,10 +4,11 @@ const coreMemberSchema = new mongoose.Schema({
   name: { type: String, required: true },
   designation: { type: String, required: true },
   imageUrl: { type: String, required: true },
-  linkedinUrl: { type: String, required: true },
+  linkedinUrl: { type: String },
   order: { type: Number },
   email: { type: String },
-  subPosition: { type: String } // Optional field
+  subPosition: { type: String, required: true },
+  year: { type: Number, required: true }
 });
 const CoreMember = mongoose.model('Core_members', coreMemberSchema, 'Core_members');
 export default CoreMember;
