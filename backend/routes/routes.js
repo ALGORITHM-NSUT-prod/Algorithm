@@ -8,7 +8,7 @@ import {
   addProject,
   deleteProject,
 } from "../controllers/ProjectController.js";
-import { getCoreMembers } from "../controllers/coreMemberController.js";
+import { addCoreMember, getCoreMembers, updateCoreMember, deleteCoreMember } from "../controllers/coreMemberController.js";
 import {
   submitapplication,
   handleApplication,
@@ -61,5 +61,7 @@ router
 router.route("/resetpass/:id").post(resetpass);
 router.post("/leaderBoard/save", fetchNewRanks);
 router.post('/grant', grantAdminAccess);
-
+router.post('/addCoreMember', isAuthenticated, upload.array("photo"), addCoreMember);
+router.post('/updateCoreMember', isAuthenticated, upload.array("photo"), updateCoreMember);
+router.post('/deleteCoreMember', isAuthenticated, deleteCoreMember);
 export default router;
